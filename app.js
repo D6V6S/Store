@@ -1,5 +1,6 @@
 //https://expressjs.com/ru/starter/generator.html
 const { query } = require('express');
+
 const express = require('express');
 const app = express();
 const port = 3000;
@@ -84,4 +85,15 @@ app.get('/goods', function (req, res) {
           if (error) throw error;
           res.render('goods', {goods: JSON.parse(JSON.stringify(result))});
         });
+});
+
+app.post('/get-category-list',function (req, res){
+  // console.log(req)
+  con.query(
+    'SELECT id, category FROM category',
+    function (error, result) {
+      if (error) throw error;
+      console.log(result);
+      res.json(result);
+    });
 });
