@@ -1,5 +1,5 @@
 include header
-
+include site_header.pug
 h2 My app
 p #{foo}
 h3 #{bar}
@@ -9,3 +9,6 @@ each val, index in goods
     src='images/'+val['image']
     class="test"
   )
+
+include nav
+include footer

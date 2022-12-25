@@ -23,6 +23,8 @@ const configDB = require('./config');
 
 const con = mysql.createConnection(configDB);
 
+app.use(express.json());
+
 
 app.listen(port, function () {
     console.log('node express start on 3000');
@@ -88,12 +90,27 @@ app.get('/goods', function (req, res) {
 });
 
 app.post('/get-category-list',function (req, res){
-  // console.log(req)
   con.query(
     'SELECT id, category FROM category',
     function (error, result) {
       if (error) throw error;
       console.log(result);
       res.json(result);
+    });
+});
+
+app.post('/get-goods-info',function (req, res){
+  console.log(req.body.key);
+  let queryDB = `SELECT id,name,cost FROM goods WHERE id IN (${req.body.key.join(',')})`
+  con.query(
+    queryDB,
+    function (error, result) {
+      if (error) throw error;
+      console.log(result);
+      let goods = {};
+      for (const element of result){
+        goods[element['id']] = element;
+      };
+      res.json(goods);
     });
 });

@@ -1,4 +1,4 @@
-console.log("nav.js")
+// console.log("nav.js")
 
 document.querySelector('.close-nav').onclick= closeNav;
 document.querySelector('.show-nav').onclick= showNav;
@@ -18,13 +18,13 @@ function getCategoryList(){
     }).then( function(response){
         return response.text();
     }).then(function(body){
-        console.log(body);
+        // console.log(body);
         showCategoryList(JSON.parse(body));
     })
 }
 
 function showCategoryList(data){
-    console.log(data)
+    // console.log(data)
     let out =`<ul class="category-list"><li><a href="/">Main</a></li>`;
     for (const element of data){
         out +=`<li><a href="/cat?id=${element['id']}">${element['category']}</a></li>`;

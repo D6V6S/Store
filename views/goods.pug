@@ -13,7 +13,7 @@ div(class='wrap')
                 img(src="images/"+goods[0]['image'], 
                     alt=goods[0]['name'], 
                     class="goods-big-image")
-            div(class="col col-md-4")
+            div(class="col col-md-8")
                 p #{goods[0]['description']}
                 span(class="success") Цена: #{goods[0]['cost'].toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$& ')}грн.
                 button(
