@@ -31,22 +31,48 @@ app.listen(port, function () {
 });
 
 app.get('/', function (req, res) {
+  let cat = new Promise( function(resolve, reject){
+    con.query(
+      "SELECT id,name, cost, image, category FROM (SELECT id,name,cost,image,category, if(if(@curr_category != category, @curr_category := category, '') != '', @k := 0, @k := @k + 1) as ind FROM goods, ( SELECT @curr_category := '' ) v ) goods WHERE ind < 3",
+    function(error, result, fields){
+      if (error) return reject(error);
+      resolve(result)
+    })
+  });
 
-    const query = "SELECT * FROM goods";
+  let catDescription = new Promise( function(resolve, reject){
+    con.query(
+      "SELECT * FROM category",
+    function(error, result, fields){
+      if (error) return reject(error);
+      resolve(result)
+    })
+  });
+
+  Promise.all([cat, catDescription]).then(function (value){
+    console.log(value[0]);
+    res.render('main', {
+      goods: JSON.parse(JSON.stringify(value[0])),
+      cat: JSON.parse(JSON.stringify(value[1]))
+      })
+  })
+
+
+    // const query = "SELECT * FROM goods";
     
-    con.query(query, function (error, result) {
-        if (error) throw err;
-        let goods = {};
-        for (const element of result){
-            goods[element['id']] = element;
-        };
+    // con.query(query, function (error, result) {
+    //     if (error) throw err;
+    //     let goods = {};
+    //     for (const element of result){
+    //         goods[element['id']] = element;
+    //     };
         
-        res.render('main', {
-            foo: 4,
-            bar: 7,
-            goods: JSON.parse(JSON.stringify(goods))
-        });
-    });
+    //     res.render('main', {
+    //         foo: 4,
+    //         bar: 7,
+    //         goods: JSON.parse(JSON.stringify(goods))
+    //     });
+    // });
 });
 
 app.get('/cat', function (req, res) {
