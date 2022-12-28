@@ -36,7 +36,7 @@ function ajaxGetGoodsInfo(){
         return responce.text();
     })
     .then(function(body){
-        console.log(body);
+        // console.log(body);
         showCart(JSON.parse(body));
     })
 };
