@@ -6,11 +6,23 @@ document.querySelector("#lite-shop-order").onsubmit = function (event) {
   let address = document.querySelector("#address").value.trim();
 
   if (!document.querySelector("#rule").checked) {
-    //
+    Swal.fire({
+      title: 'Warning',
+      text: 'Read and accept the rule',
+      icon: 'info',
+      confirmButtonText: 'Ok'
+    });
+    return false;
   }
 
   if (username == "" || phone == "" || email == "" || address == "") {
-    //
+    Swal.fire({
+      title: 'Warning',
+      text: 'Fill all fields',
+      icon: 'info',
+      confirmButtonText: 'Ok'
+    });
+    return false;
   }
 
   fetch("/finish-order", {
@@ -32,9 +44,19 @@ document.querySelector("#lite-shop-order").onsubmit = function (event) {
     })
     .then(function (body) {
       if (body == 1) {
-
+        Swal.fire({
+          title: 'Success',
+          text: 'success',
+          icon: 'success',
+          confirmButtonText: 'Ok'
+        });
       } else {
-        
+        Swal.fire({
+          title: 'Prplem with mail',
+          text: 'Error',
+          icon: 'error',
+          confirmButtonText: 'Ok'
+        });
       }
     });
 };
