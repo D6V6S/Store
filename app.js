@@ -30,6 +30,8 @@ https://nodemailer.com/about/
 */
 const nodemailer = require("nodemailer");
 
+process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
+
 app.listen(port, function () {
   console.log("node express start on 3000");
 });
@@ -143,6 +145,7 @@ app.post("/finish-order", function (req, res) {
       if (error) throw error;
         console.log(result);
         sendMail(req.body, result).catch(console.error);
+        saveOrder(req.body, result);
         res.send("1");
     });
   } else {
@@ -150,6 +153,24 @@ app.post("/finish-order", function (req, res) {
   }
 });
 
+
+function saveOrder(data, result) {
+  let sql;
+  sql = "INSERT INTO user_info (user_name, user_phone, user_email,address) VALUES ('" + data.username + "', '" + data.phone + "', '" + data.email + "','" + data.address + "')";
+  con.query(sql, function (error, resultQuery) {
+    if (error) throw error;
+    console.log("1 user record inserted");
+  });
+  date = new Date() / 1000;
+  for (let i = 0; i < result.length; i++) {
+    sql = "INSERT INTO shop_order (date, user_id, goods_id, goods_cost, goods_amount, total) VALUES (" + date + ", 45," + result[i]['id'] + ", " + result[i]['cost'] + "," + data.key[result[i]['id']] + ", " + data.key[result[i]['id']] * result[i]['cost'] + ")";
+    console.log(sql);
+    con.query(sql, function (error, resultQuery) {
+      if (error) throw error;
+      console.log("1 record inserted");
+    });
+  }
+}
 
 async function sendMail(data, result){
   let res = "<h2>Order in Lihe Shop</h2>";
