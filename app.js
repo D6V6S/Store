@@ -153,6 +153,37 @@ app.post("/finish-order", function (req, res) {
   }
 });
 
+app.get("/admin", function (req, res) {
+    res.render("admin", {});
+});
+
+app.get("/admin-order", function (req, res) {
+  con.query(`SELECT 
+	  shop_order.id as id,
+	  shop_order.user_id as user_id,
+    shop_order.goods_id as goods_id,
+    shop_order.goods_cost as goods_cost,
+    shop_order.goods_amount as goods_amount,
+    shop_order.total as total,
+    from_unixtime(date,"%Y-%m-%d %h:%m") as human_date,
+    user_info.user_name as user,
+    user_info.user_phone as phone,
+    user_info.address as address
+  FROM 
+	  shop_order
+  LEFT JOIN	
+	  user_info
+  ON shop_order.user_id = user_info.id ORDER BY id DESC`,
+    function (error, result) {
+      if (error) throw error;
+      res.render("admin-order", { order: JSON.parse(JSON.stringify(result)) });
+    }
+  );
+});
+
+app.get("/admin-goods", function (req, res) {
+  res.render("admin-goods", {});
+});
 
 function saveOrder(data, result) {
   let sql;
@@ -160,16 +191,17 @@ function saveOrder(data, result) {
   con.query(sql, function (error, resultQuery) {
     if (error) throw error;
     console.log("1 user record inserted");
+    let userId = resultQuery.insertId;
+    date = new Date() / 1000;
+    for (let i = 0; i < result.length; i++) {
+      sql = "INSERT INTO shop_order (date, user_id, goods_id, goods_cost, goods_amount, total) VALUES (" + date + ","+ userId+"," + result[i]['id'] + ", " + result[i]['cost'] + "," + data.key[result[i]['id']] + ", " + data.key[result[i]['id']] * result[i]['cost'] + ")";
+      console.log(sql);
+      con.query(sql, function (error, resultQuery) {
+        if (error) throw error;
+        console.log("1 record inserted");
+      });
+    }
   });
-  date = new Date() / 1000;
-  for (let i = 0; i < result.length; i++) {
-    sql = "INSERT INTO shop_order (date, user_id, goods_id, goods_cost, goods_amount, total) VALUES (" + date + ", 45," + result[i]['id'] + ", " + result[i]['cost'] + "," + data.key[result[i]['id']] + ", " + data.key[result[i]['id']] * result[i]['cost'] + ")";
-    console.log(sql);
-    con.query(sql, function (error, resultQuery) {
-      if (error) throw error;
-      console.log("1 record inserted");
-    });
-  }
 }
 
 async function sendMail(data, result){
