@@ -24,6 +24,7 @@ const configDB = require("./config");
 const con = mysql.createConnection(configDB);
 
 app.use(express.json());
+app.use(express.urlencoded());
 
 /*
 https://nodemailer.com/about/
@@ -137,13 +138,13 @@ app.post("/get-goods-info", function (req, res) {
 });
 
 app.post("/finish-order", function (req, res) {
-  console.log(req.body);
+  // console.log(req.body);
   if (req.body.key.length != 0) {
     let key = Object.keys(req.body.key);
     let queryDB = `SELECT id,name,cost FROM goods WHERE id IN (${key.join(',')})`;
     con.query(queryDB, function (error, result) {
       if (error) throw error;
-        console.log(result);
+        // console.log(result);
         sendMail(req.body, result).catch(console.error);
         saveOrder(req.body, result);
         res.send("1");
@@ -184,6 +185,36 @@ app.get("/admin-order", function (req, res) {
 app.get("/admin-goods", function (req, res) {
   res.render("admin-goods", {});
 });
+
+app.get("/login", function (req, res) {
+  res.render("login", {});
+});
+
+app.post("/login", function (req, res) {
+  console.log(req.body);
+  console.log(req.body.login);
+  console.log(req.body.password);
+  con.query(
+    `SELECT * FROM user WHERE user='${req.body.login}' AND password='${req.body.password}'`,
+    function (error, result) {
+      if (error) reject(error);
+      if (result.length == 0) {
+        console.log('ERROR User not found');
+        res.redirect('/login');
+      } else {
+        result = JSON.parse(JSON.stringify(result));
+        res.cookie('hash', 'BlaBAla');
+
+        con.query(`UPDATE user SET hash='BlaBAla' WHERE id = ${result[0]['id']}`, function (error, result) {
+          if (error) throw error;
+          res.redirect('/admin');
+        });
+      }
+    }
+  );
+});
+
+
 
 function saveOrder(data, result) {
   let sql;
