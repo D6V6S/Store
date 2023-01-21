@@ -5,6 +5,10 @@ const express = require("express");
 const app = express();
 const port = 3000;
 
+//http://expressjs.com/en/resources/middleware/cookie-parser.html
+const cookieParser = require('cookie-parser')
+const admin = require('./admin');
+
 /*
 public - папка с статикой
 */
@@ -25,6 +29,7 @@ const con = mysql.createConnection(configDB);
 
 app.use(express.json());
 app.use(express.urlencoded());
+app.use(cookieParser());
 
 /*
 https://nodemailer.com/about/
@@ -35,6 +40,15 @@ process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 
 app.listen(port, function () {
   console.log("node express start on 3000");
+});
+
+//https://expressjs.com/ru/guide/using-middleware.html
+app.use(function (req, res, next) {
+  if (req.originalUrl == '/admin' || req.originalUrl == '/admin-order'){
+    admin(req, res, con, next);
+  } else {
+    next();
+  };
 });
 
 app.get("/", function (req, res) {
@@ -155,31 +169,31 @@ app.post("/finish-order", function (req, res) {
 });
 
 app.get("/admin", function (req, res) {
-    res.render("admin", {});
+  res.render('admin', {});
 });
 
 app.get("/admin-order", function (req, res) {
-  con.query(`SELECT 
-	  shop_order.id as id,
-	  shop_order.user_id as user_id,
-    shop_order.goods_id as goods_id,
-    shop_order.goods_cost as goods_cost,
-    shop_order.goods_amount as goods_amount,
-    shop_order.total as total,
-    from_unixtime(date,"%Y-%m-%d %h:%m") as human_date,
-    user_info.user_name as user,
-    user_info.user_phone as phone,
-    user_info.address as address
-  FROM 
-	  shop_order
-  LEFT JOIN	
-	  user_info
-  ON shop_order.user_id = user_info.id ORDER BY id DESC`,
-    function (error, result) {
-      if (error) throw error;
-      res.render("admin-order", { order: JSON.parse(JSON.stringify(result)) });
-    }
-  );
+      con.query(`SELECT 
+      shop_order.id as id,
+      shop_order.user_id as user_id,
+      shop_order.goods_id as goods_id,
+      shop_order.goods_cost as goods_cost,
+      shop_order.goods_amount as goods_amount,
+      shop_order.total as total,
+      from_unixtime(date,"%Y-%m-%d %h:%m") as human_date,
+      user_info.user_name as user,
+      user_info.user_phone as phone,
+      user_info.address as address
+    FROM 
+      shop_order
+    LEFT JOIN	
+      user_info
+    ON shop_order.user_id = user_info.id ORDER BY id DESC`,
+      function (error, result) {
+        if (error) throw error;
+        res.render("admin-order", { order: JSON.parse(JSON.stringify(result)) });
+      }
+    );
 });
 
 app.get("/admin-goods", function (req, res) {
@@ -191,9 +205,9 @@ app.get("/login", function (req, res) {
 });
 
 app.post("/login", function (req, res) {
-  console.log(req.body);
-  console.log(req.body.login);
-  console.log(req.body.password);
+  // console.log(req.body);
+  // console.log(req.body.login);
+  // console.log(req.body.password);
   con.query(
     `SELECT * FROM user WHERE user='${req.body.login}' AND password='${req.body.password}'`,
     function (error, result) {
@@ -203,9 +217,11 @@ app.post("/login", function (req, res) {
         res.redirect('/login');
       } else {
         result = JSON.parse(JSON.stringify(result));
-        res.cookie('hash', 'BlaBAla');
+        let hash = makeHash(32);
+        res.cookie('hash', hash);
+        res.cookie('id', result[0]['id']);
 
-        con.query(`UPDATE user SET hash='BlaBAla' WHERE id = ${result[0]['id']}`, function (error, result) {
+        con.query(`UPDATE user SET hash='${hash}' WHERE id = ${result[0]['id']}`, function (error, result) {
           if (error) throw error;
           res.redirect('/admin');
         });
@@ -284,4 +300,14 @@ async function sendMail(data, result){
   console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
   // Preview URL: https://ethereal.email/message/WaQKMgKddxQDoou...
   return true;
+}
+
+function makeHash(length) {
+  var result           = '';
+  var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  var charactersLength = characters.length;
+  for ( var i = 0; i < length; i++ ) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
 }
