@@ -79,7 +79,7 @@ app.get("/", function (req, res) {
 });
 
 app.get("/cat", function (req, res) {
-  console.log(req.query);
+  // console.log(req.query);
   let catId = req.query.id;
 
   let cat = new Promise(function (resolve, reject) {
@@ -115,16 +115,16 @@ app.get("/goods/*", function (req, res) {
     `SELECT * FROM goods WHERE slug="${req.params['0']}" `,
     function (error, result) {
       if (error) throw error;
-      console.log(result);
+      // console.log(result);
       result = JSON.parse(JSON.stringify(result));
-      console.log(result[0]['id']);
+      // console.log(result[0]['id']);
       con.query(
         `SELECT * FROM images WHERE goods_id=${result[0]['id']}`,
         function (errorImg, resultImg) {
           if (errorImg) throw error;
-          console.log(resultImg);
-          resultImg = JSON.parse(JSON.stringify(resultImg));
-          res.render("goods", { goods: result, resultImg});
+          // console.log(resultImg);
+            resultImg = JSON.parse(JSON.stringify(resultImg));
+            res.render("goods", { goods: result, resultImg});
         });
     }
   );
