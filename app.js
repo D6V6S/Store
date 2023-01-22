@@ -54,7 +54,7 @@ app.use(function (req, res, next) {
 app.get("/", function (req, res) {
   let cat = new Promise(function (resolve, reject) {
     con.query(
-      "SELECT id,name, cost, image, category FROM (SELECT id,name,cost,image,category, if(if(@curr_category != category, @curr_category := category, '') != '', @k := 0, @k := @k + 1) as ind FROM goods, ( SELECT @curr_category := '' ) v ) goods WHERE ind < 3",
+      "SELECT id, slug, name, cost, image, category FROM (SELECT id,slug,name,cost,image,category, if(if(@curr_category != category, @curr_category := category, '') != '', @k := 0, @k := @k + 1) as ind FROM goods, ( SELECT @curr_category := '' ) v ) goods WHERE ind < 3",
       function (error, result, fields) {
         if (error) return reject(error);
         resolve(result);
@@ -79,7 +79,7 @@ app.get("/", function (req, res) {
 });
 
 app.get("/cat", function (req, res) {
-  // console.log(req.query.id);
+  console.log(req.query);
   let catId = req.query.id;
 
   let cat = new Promise(function (resolve, reject) {
@@ -110,10 +110,9 @@ app.get("/cat", function (req, res) {
   });
 });
 
-app.get("/goods", function (req, res) {
-  // console.log(req.query.id);
+app.get("/goods/*", function (req, res) {
   con.query(
-    "SELECT * FROM goods WHERE id=" + req.query.id,
+    `SELECT * FROM goods WHERE slug="${req.params['0']}" `,
     function (error, result) {
       if (error) throw error;
       res.render("goods", { goods: JSON.parse(JSON.stringify(result)) });
@@ -128,7 +127,7 @@ app.get("/order", function (req, res) {
 app.post("/get-category-list", function (req, res) {
   con.query("SELECT id, category FROM category", function (error, result) {
     if (error) throw error;
-    console.log(result);
+    // console.log(result);
     res.json(result);
   });
 });
@@ -139,7 +138,7 @@ app.post("/get-goods-info", function (req, res) {
     let queryDB = `SELECT id,name,cost FROM goods WHERE id IN (${req.body.key.join(',')})`;
     con.query(queryDB, function (error, result) {
       if (error) throw error;
-      console.log(result);
+      // console.log(result);
       let goods = {};
       for (const element of result) {
         goods[element["id"]] = element;
@@ -242,7 +241,7 @@ function saveOrder(data, result) {
     date = new Date() / 1000;
     for (let i = 0; i < result.length; i++) {
       sql = "INSERT INTO shop_order (date, user_id, goods_id, goods_cost, goods_amount, total) VALUES (" + date + ","+ userId+"," + result[i]['id'] + ", " + result[i]['cost'] + "," + data.key[result[i]['id']] + ", " + data.key[result[i]['id']] * result[i]['cost'] + ")";
-      console.log(sql);
+      // console.log(sql);
       con.query(sql, function (error, resultQuery) {
         if (error) throw error;
         console.log("1 record inserted");
@@ -258,7 +257,7 @@ async function sendMail(data, result){
     res += `<p>${element['name']} - ${data.key[element['id']]} - ${element['cost'] * data.key[element['id']]} uah</p>`;
     total += element['cost']*data.key[element['id']];
   }
-  console.log(res);
+  // console.log(res);
   res +='<hr>';
   res +=`Total ${total} uah`;
   res +=`<hr>Phone: ${data.phone}`;
